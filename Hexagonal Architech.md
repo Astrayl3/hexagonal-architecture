@@ -2,17 +2,17 @@
 
 ![](Aspose.Words.49d4ac03-1425-4417-8ce5-c627593bd78a.001.png)
 
-Hexagonal Architecture hay còn gọi là Ports and Adapters Architecture là một kiến trúc phần mềm mà trong đó business logic nằm ở trung tâm (Domain) và không được phép tiếp xúc với các yếu tố bên ngoài như DB, UI hay framework. Mọi giao tiếp với Domain đều phải đi qua Port không thông qua implementation. Từ đó có thể thay thế adapter mà không sợ ảnh hưởng tới Domain.
+Hexagonal Architecture hay còn gọi là Ports and Adapters Architecture là một kiến trúc phần mềm mà trong đó business logic nằm ở trung tâm (Domain) và không được phép tiếp xúc với các yếu tố bên ngoài như DB, UI hay framework. Mọi tương tác với Domain đều thông qua các interface (Port) do Domain định nghĩa, không phụ thuộc vào implementation cụ thể. Từ đó có thể thay thế adapter mà không sợ ảnh hưởng tới Domain.
 
 **Components:**
 
 Cấu trúc Hexagonal Architecture gồm 3 phần chính:
 
-1. Domain (Core): Nằm ở trung tâm hệ thống và không phụ thuộc vào yếu tố bên ngoài. Domain bao gồm Business Logic,  Entity, Value Object, Use Case và Port. Nhiệm vụ chính của Domain là xử lý toàn bộ logic nghiệp vụ, quyết định hành vi của hệ thống và định nghĩa những gì mà hệ thống có thể làm.
+1. Domain (Core): Nằm ở trung tâm hệ thống và không phụ thuộc vào yếu tố bên ngoài. Domain bao gồm Business Logic,  Entity, Value Object, Use Case và Port. Nhiệm vụ chính của Domain là xử lý toàn bộ logic nghiệp vụ, quyết định hành vi của hệ thống và định nghĩa những gì mà hệ thống có thể làm. Đặc biệt chú ý Domain không được phép import Adapter.
 1. Ports: Ports là interface do chính Domain định nghĩa, có 2 loại ports:
    1. Inbound Port dùng để làm đại diện cho các Use Case của hệ thống (vd: PlaceOrderUseCase) nhiệm chính là mô tả các hành vi do hệ thống cung cấp và cũng là danh sách của những hành động mà hệ thống cho phép thực hiện.
-   1. Outbound Port được dùng để đại diện cho những gì Domain cần từ bên ngoài (vd: PaymentGateway) nhiệm vụ chính là định nghĩa yêu cầu lưu trữ, định nghĩa yêu cầu giửi email, gọi API, Outbound Port không nói sẽ làm bằng công nghệ gì mà chỉ quan tâm Domain cần gì.
-1. Adapters: Adapters là phần triển khai cụ thể của Ports, Adapter không được chứa business logic. Có 2 loại Adapter:
+   1. Outbound Port được dùng để đại diện cho những gì Domain cần từ bên ngoài và được Domain định nghĩa (vd: PaymentGateway) nhiệm vụ chính là định nghĩa yêu cầu lưu trữ, định nghĩa yêu cầu giửi email, gọi API. Outbound Port không nói sẽ làm bằng công nghệ gì mà chỉ quan tâm Domain cần gì.
+1. Adapters: Adapters là phần triển khai cụ thể của Ports, Adapter không được chứa business logic và Adapter phải phụ thuộc vào Port, không phải ngược lại. Có 2 loại Adapter:
    1. Inbound Adapter có nhiệm vụ chính là nhận request từ bên ngoài, convert dữ liệu, gọi vào Inbound Ports (vd: REST controller, GraphQL resolver, CLI).
    1. Outbound Adapter dùng cho các nhiệm vụ như triển khai Outbound Port, thực hiện lưu DB và gọi API (vd: MongoRepository, SMTPEmailAdapter, ExternalAPIAdapter).
 
@@ -20,9 +20,9 @@ Cấu trúc Hexagonal Architecture gồm 3 phần chính:
 **\
 ` `Luồng dữ liệu trong Hexagonal Architecture hoạt động như sau:
 
-Client à Inbound Adapter à Inbound Port à Domain à Outbound Port à Outbound Adapter à Database/API
+Client --> Inbound Adapter --> Inbound Port --> Domain --> Outbound Port --> Outbound Adapter --> Database/API
 
-Ta có thể giả sử có chức năng đăng ký sinh viên thì khi sinh viên nhấn nút đăng ký REST controller sẽ nhận yêu cầu, REST controller giống như người tiếp nhận hồ sơ chỉ đọc dữ liệu sau đó chuyển tiếp đến hệ thống (Domain). Sau đó hệ thống sẽ kiểm tra tên có hợp lệ không, đã tồn tại chưa, có đủ điều kiện không, hệ thống (Domain) là nơi mà toàn bộ logic sẽ diễn ra. Sau khi đã kiểm tra hệ thống sẽ lưu lại, sau đó Adapter có nhiệm vụ lưu kết nối vào DB và thực hiện lưu data. Cuối cùng Adapter sẽ trả kết quả ngược trở lại Domain, Domain trả cho REST và REST trả cho sinh viên.
+Ta có thể giả sử có chức năng đăng ký sinh viên thì khi sinh viên nhấn nút đăng ký REST controller (Inbound Adapter) sẽ nhận yêu cầu, REST controller giống như người tiếp nhận hồ sơ chỉ đọc dữ liệu sau đó chuyển tiếp đến hệ thống (Domain) thông qua Inbound Port. Sau đó hệ thống sẽ kiểm tra tên có hợp lệ không, đã tồn tại chưa, có đủ điều kiện không, hệ thống (Domain) là nơi mà toàn bộ logic sẽ diễn ra. Sau khi kiểm tra hợp lệ, Domain thông qua Outbound Port để yêu cầu lưu dữ liệu, Adapter triển khai Port này sẽ thực hiện lưu data. Cuối cùng Adapter thực hiện lưu dữ liệu và trả kết quả thông qua Port cho Domain, Domain trả kết quả cho REST và REST trả cho sinh viên. Điểm quan trọng là Domain chỉ làm việc với các Port, không biết Adapter cụ thể nào đang được sử dụng.
 
 **Ưu/Nhược điểm:**
 
