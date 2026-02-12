@@ -17,8 +17,8 @@ Cấu trúc Hexagonal Architecture gồm 3 phần chính:
    1. Outbound Adapter dùng cho các nhiệm vụ như triển khai Outbound Port, thực hiện lưu DB và gọi API (vd: MongoRepository, SMTPEmailAdapter, ExternalAPIAdapter).
 
 **Data flows:**
-**\
-` `Luồng dữ liệu trong Hexagonal Architecture hoạt động như sau:
+
+Luồng dữ liệu trong Hexagonal Architecture hoạt động như sau:
 
 Client --> Inbound Adapter --> Inbound Port --> Domain --> Outbound Port --> Outbound Adapter --> Database/API
 
@@ -72,3 +72,4 @@ Nên dùng khi:
 **Workflow 3 - Iterative Refinement:**
 
 - Cho AI tổng hợp lại những gì đã nghiên cứu từ trên thành một cấu trúc logic, đọc và yêu cầu giải thích chi tiết cho những phần tôi cảm thấy trừu tượng. Cuối cùng cho AI vào vai một senior architecture để review lại báo cáo cũng như chỉ ra những sai sót hoặc những điểm dễ gây hiểu lầm.
+
